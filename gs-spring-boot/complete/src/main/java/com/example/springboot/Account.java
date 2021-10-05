@@ -1,5 +1,7 @@
 package com.example.springboot;
 
+import com.example.exceptions.AccountInsufficientFoundsException;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -74,25 +76,21 @@ public class Account {
                 '}';
     }
 
-    public Float balance(Long accountNumber, Integer pin){
-        if(this.accountNumber == accountNumber && this.pin == pin){
-            return this.balance;
-        }
-        else
-            return null;
-    }
-
-    public Float withdraw(Long accountNumber, Integer pin, Integer withdraw) throws Exception {
-        if(this.accountNumber == accountNumber && this.pin == pin){
-            if(withdraw <= this.balance){
-                return balance - withdraw;
+    public void withdraw(Integer withdraw) throws Exception {
+        if(withdraw <= this.balance + this.overdraft){
+            if(withdraw <= balance) {
+                setBalance(this.balance - withdraw);
             }
-            else{
-                throw new Exception("Not enough funds");
+            else if(withdraw > this.balance && withdraw <= (this.balance + this.overdraft)){
+                setOverdraft((int) (this.overdraft - (withdraw - this.balance)));
+                setBalance(0F);
             }
         }
         else{
-            throw new Exception("Wrong pin");
+            throw new AccountInsufficientFoundsException();
         }
+    }
+    public Boolean checkPin(Integer pin){
+        return this.pin.equals(pin);
     }
 }

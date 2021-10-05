@@ -1,6 +1,8 @@
 package com.example.springboot;
 
-import java.util.HashMap;
+import com.example.exceptions.ATMInsufficientFundsException;
+import com.example.exceptions.InvalidValueException;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -14,19 +16,17 @@ public class ATM {
     private Integer bill20;
     private Integer bill10;
     private Integer bill5;
-    private HashMap<Integer, Account> accounts;
 
     public ATM (){
 
     }
 
-    public ATM(Long id, Integer balance, Integer bill50, Integer bill20, Integer bill10, Integer bill5) {
+    public ATM(Integer balance, Integer bill50, Integer bill20, Integer bill10, Integer bill5) {
         this.balance = balance;
         this.bill50 = bill50;
         this.bill20 = bill20;
         this.bill10 = bill10;
         this.bill5 = bill5;
-        this.accounts = new HashMap<Integer, Account>();
     }
 
     public Long getId() {
@@ -96,4 +96,113 @@ public class ATM {
                 ", bill5=" + bill5 +
                 '}';
     }
+
+    public ATM withdraw(Integer withdraw) throws  Exception{
+            Integer remainder = withdraw;
+            ATM atm = new ATM();
+            if(withdraw > this.balance){
+                throw new ATMInsufficientFundsException();
+            }
+            else{
+                if(remainder % 5 != 0){
+                    throw new InvalidValueException();
+                }
+                else{
+                    atm = calculateBills50(withdraw, atm);
+                    if(atm.getBalance() != 0){
+                        atm = calculateBills20(atm);
+                    }
+                    if(atm.getBalance() != 0){
+                        atm = calculateBills10(atm);
+                    }
+                    if(atm.getBalance() != 0){
+                        atm=calculateBills5(atm);
+                    }
+                }
+            }
+            return atm;
+    }
+
+    public ATM calculateBills50(Integer withdraw, ATM atm){
+        Integer bill50 = 0;
+        Integer remainder = withdraw;
+        bill50 = remainder / 50;
+        if(bill50.intValue() <= this.getBill50().intValue()){
+            atm.setBill50(bill50);
+            this.setBill50(this.getBill50() - bill50);
+        }
+        else{
+            atm.setBill50(this.getBill50());
+            this.setBill50(0);
+        }
+
+        remainder = remainder - atm.getBill50()*50;
+        setBalance(this.balance - bill50*50);
+        atm.setBalance(remainder);
+
+        return atm;
+    }
+
+    public ATM calculateBills20(ATM atm){
+        Integer bill20 = 0;
+        Integer remainder = atm.balance;
+        bill20 = remainder / 20;
+        if(bill20.intValue() <= this.bill20.intValue()){
+            atm.setBill20(bill20);
+            this.setBill20(this.bill20 - bill20);
+        }
+        else{
+            atm.setBill20(this.bill20);
+            this.setBill20(0);
+        }
+
+        remainder = remainder - atm.getBill20()*20;
+        setBalance(this.balance - bill20*20);
+        atm.setBalance(remainder);
+
+        return atm;
+    }
+
+    public ATM calculateBills10(ATM atm){
+        Integer bill10 = 0;
+        Integer remainder = atm.balance;
+        bill10 = remainder / 10;
+        if(bill10.intValue() <= this.bill10.intValue()){
+            atm.setBill10(bill10);
+            this.setBill10(this.bill10 - bill10);
+        }
+        else{
+            atm.setBill10(this.bill10);
+            this.setBill10(0);
+        }
+
+        remainder = remainder - atm.getBill10()*10;
+        setBalance(this.balance - bill10*10);
+        atm.setBalance(remainder);
+
+        return atm;
+    }
+
+    public ATM calculateBills5(ATM atm) throws Exception {
+        Integer bill5 = 0;
+        Integer remainder = atm.balance;
+        bill5 = remainder / 5;
+        if(bill5.intValue() <= this.bill5.intValue()){
+            atm.setBill5(bill5);
+            this.setBill5(this.bill5 - bill5);
+            remainder = remainder - atm.getBill5()*5;
+            setBalance(this.balance - bill5*5);
+            atm.setBalance(remainder);
+        }
+        else{
+            throw new ATMInsufficientFundsException();
+        }
+
+        return atm;
+    }
+
+
+
+
+
 }
