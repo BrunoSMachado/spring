@@ -1,1 +1,1 @@
-# spring
+# Refer to gs-spring-boot/README.adoc
